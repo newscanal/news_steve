@@ -1,15 +1,15 @@
 from __future__ import annotations
 from typing import List, Dict, Optional
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, PrivateAttr
 from uuid import uuid4, UUID
 from requests.exceptions import RequestException
 import requests
 
 class NewsOrder(BaseModel):
     """
-    NewsOrder object for defining a news collection order.
+    NewsOrder class for defining a news collection order.
     """
-    _order_id: UUID = Field(default_factory=uuid4, description="Unique ID for the news order")
+    _order_id: UUID = PrivateAttr(default_factory=uuid4)
 
     name: str = Field(..., description="Name of news company")
     rss: str = Field(..., description="Rss url of news order")
@@ -25,11 +25,11 @@ class NewsOrder(BaseModel):
     def order_key(self) -> str:
         return f"{self.name}_{'_'.join(self.categories)}" if self.categories else self.name
     
-    @field_serializer("order_id")
+    @field_serializer("order_id", check_fields=False)
     def serialize_order_id(self, v, info):
         return str(self.order_id)
     
-    @field_serializer("order_key")
+    @field_serializer("order_key", check_fields=False)
     def serialize_order_key(self, v, info):
         return self.order_key
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
 from typing import Optional, Dict
-from pydantic import BaseModel, Field, computed_field, PrivateAttr
+from pydantic import BaseModel, Field, field_validator, computed_field, PrivateAttr
 from uuid import uuid4, UUID
 from bs4 import BeautifulSoup
 import time
 import requests
+import json
 
 from news_steve.order import NewsOrder
 
@@ -30,6 +31,24 @@ class NewsItem(BaseModel):
             time.struct_time: lambda v: time.strftime("%Y-%m-%d %H:%M:%S", v)
         }
     }
+
+    @field_validator('news_order', mode='before')
+    def deserialize_news_order(v):
+        if v is None or isinstance(v, NewsOrder):
+            return v
+        if isinstance(v, dict):
+            return NewsOrder.from_dict(v, preserve_id=True)
+        return v
+    
+    @field_validator('published_parsed', mode='before')
+    def deserialize_time_struct(v):
+        if v is None or isinstance(v, time.struct_time):
+            return v
+        if isinstance(v, str):
+            return time.strptime(v, "%Y-%m-%d %H:%M:%S")
+        if isinstance(v, (list, tuple)) and len(v) == 9:
+            return time.struct_time(v)
+        return v
 
     @computed_field
     @property
@@ -80,7 +99,29 @@ class NewsItem(BaseModel):
         """
         if not self.news_order:
             return None
-        return self.news_order.order2dict()
+        return self.news_order.to_dict()
+    
+    @classmethod
+    def from_dict(
+        cls,
+        data: Dict,
+        preserve_id: bool = True,
+    ) -> NewsItem:
+        """Create a NewsItem from a dict"""
+        item = cls.model_validate(data)
+        if preserve_id and 'item_id' in data:
+            item._item_id = UUID(data['item_id']) if isinstance(data['item_id'], str) else data['item_id']
+        return item
+
+    @classmethod
+    def from_json(
+        cls,
+        data: str,
+        preserve_id: bool = True,
+    ) -> NewsItem:
+        """Create a NewsItem from JSON-string"""
+        data = json.loads(data)
+        return cls.from_dict(data, preserve_id=preserve_id)
 
     def to_dict(self) -> Dict:
         """NewsItem to Dict"""

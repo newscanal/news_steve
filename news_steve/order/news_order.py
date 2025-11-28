@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, computed_field, PrivateAttr
 from uuid import uuid4, UUID
 from requests.exceptions import RequestException
 import requests
+import json
 
 class NewsOrder(BaseModel):
     """
@@ -30,10 +31,24 @@ class NewsOrder(BaseModel):
     @classmethod
     def from_dict(
         cls,
-        data: Dict
+        data: Dict,
+        preserve_id: bool = True,
     ) -> NewsOrder:
         """Create a NewsOrder from a dict"""
-        return cls(**data)
+        order = cls.model_validate(data)
+        if preserve_id and 'order_id' in data:
+            order._order_id = UUID(data['order_id']) if isinstance(data['order_id'], str) else data['order_id']
+        return order
+    
+    @classmethod
+    def from_json(
+        cls,
+        data: str,
+        preserve_id: bool = True,
+    ) -> NewsOrder:
+        """Create a NewsOrder from a JSON-string"""
+        data = json.load(data)
+        return cls.from_dict(data, preserve_id=preserve_id)
     
     def check_rss(
         self,

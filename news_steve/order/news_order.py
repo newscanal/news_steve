@@ -48,10 +48,10 @@ class NewsOrder(BaseModel):
         except RequestException:
             return False
         
-    def order2dict(self) -> Dict:
+    def to_dict(self) -> Dict:
         """NewsOrder to Dict"""
         return self.model_dump()
     
-    def order2json(self, indent: int = 2) -> str:
+    def to_json(self, indent: int = 2) -> str:
         """NewsOrder to JSON"""
         return self.model_dump_json(indent=indent)

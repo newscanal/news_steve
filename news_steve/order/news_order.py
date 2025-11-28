@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, Dict, Optional
-from pydantic import BaseModel, Field, field_serializer, PrivateAttr
+from pydantic import BaseModel, Field, computed_field, PrivateAttr
 from uuid import uuid4, UUID
 from requests.exceptions import RequestException
 import requests
@@ -17,22 +17,16 @@ class NewsOrder(BaseModel):
     description: Optional[str] = Field(default=None, description="Description of news order")
     max_items: Optional[int] = Field(default=None, description="Maximum number of items to collect")
 
+    @computed_field
     @property
     def order_id(self) -> UUID:
         return self._order_id
     
+    @computed_field
     @property
     def order_key(self) -> str:
         return f"{self.name}_{'_'.join(self.categories)}" if self.categories else self.name
     
-    @field_serializer("order_id", check_fields=False)
-    def serialize_order_id(self, v, info):
-        return str(self.order_id)
-    
-    @field_serializer("order_key", check_fields=False)
-    def serialize_order_key(self, v, info):
-        return self.order_key
-
     @classmethod
     def from_dict(
         cls,

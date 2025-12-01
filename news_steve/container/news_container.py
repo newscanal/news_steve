@@ -41,7 +41,7 @@ class NewsContainer:
     def meta(self) -> Dict[str, int]:
         return self._meta
     
-    def get_all_itmes(self, sort: bool = False, revsere: bool = False):
+    def get_all_items(self, sort: bool = False, revsere: bool = False):
         if (sort):
             return sorted(self._container.values(), key=lambda x:x.published, reverse=reversed)
         return self._container.values()

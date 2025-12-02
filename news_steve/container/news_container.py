@@ -1,7 +1,11 @@
-from typing import Dict, List, Set, Optional, DefaultDict, Union
+from __future__ import annotations
+from typing import Dict, List, Set, Optional, DefaultDict, Union, Any
 from uuid import UUID
 from collections import defaultdict
 from sortedcontainers import SortedDict, SortedSet
+
+import json
+
 from news_steve.item import NewsItem
 from news_steve.order import NewsOrder
 
@@ -41,10 +45,10 @@ class NewsContainer:
     def meta(self) -> Dict[str, int]:
         return self._meta
     
-    def get_all_items(self, sort: bool = False, revsere: bool = False):
+    def get_all_items(self, sort: bool = False, reverse: bool = False):
         if (sort):
-            return sorted(self._container.values(), key=lambda x:x.published, reverse=reversed)
-        return self._container.values()
+            return sorted(self._container.values(), key=lambda x:x.published, reverse=reverse)
+        return list(self._container.values())
     
     def __len__(self):
         return len(self._container)
@@ -160,13 +164,12 @@ class NewsContainer:
             return sorted(result, key=lambda x: x.published, reverse=reverse)
         return result
 
-
     def _search_order(self, order:str) -> Set[UUID]:
         if order not in self._index_by_order:
             raise ValueError(f"This order not in container. not valid order: {order}.")
         return self._index_by_order[order]
 
-    def serach_by_order(self, orders: Union[str, NewsOrder, List[str], List[NewsOrder]], sort=False, reverse=False) -> List[NewsItem]:
+    def search_by_order(self, orders: Union[str, NewsOrder, List[str], List[NewsOrder]], sort=False, reverse=False) -> List[NewsItem]:
         """
         Search NewsItems by a NewsOrder or multiple NewsOrder
         """
@@ -187,7 +190,7 @@ class NewsContainer:
             return sorted(result, key=lambda x: x.published, reverse=reverse)
         return result
 
-    def serach_by_date(self, start: str, end: Optional[str] = None, reverse=False):
+    def search_by_date(self, start: str, end: Optional[str] = None, reverse=False):
         """
         Search NewsItems by start time and end time.
         if end time is None, only start time NewsItems search.
@@ -206,4 +209,43 @@ class NewsContainer:
             return result.reverse()
         return result
 
-    ## TODO Serialization/Deserialization
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        NewsContainer to Dict
+        """
+        return {
+            "items": {str(k): v.to_dict() for k, v in self._container.items()},
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Dict,
+    ) -> NewsContainer:
+        """
+        Create a NewsContainer from a dict
+        """
+        container = cls()
+        items_dict = data.get("items", {})
+
+        for v in items_dict.values():
+            item = NewsItem.from_dict(v)
+            container._add(item)
+        return container
+
+    @classmethod
+    def from_json(
+        cls,
+        json_str: str,
+    ) -> NewsContainer:
+        """
+        Create a NewsContainer from a json
+        """
+        data = json.loads(json_str)
+        return cls.from_dict(data)
+
+    def to_json(self, indent: int = 2) -> str:
+        """
+        NewsContainer to JSON
+        """
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)

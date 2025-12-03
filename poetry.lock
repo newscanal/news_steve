@@ -586,6 +586,18 @@ files = [
 ]
 
 [[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
+]
+
+[[package]]
 name = "soupsieve"
 version = "2.8"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -657,4 +669,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "afb0b7bbd39c858cdb502e9bcb0390d66441fea3c01eb507af90dd4490970a08"
+content-hash = "61e0a07f94f3d7ac79f9d42c50bce993c1009bc7e90f948bf60c2414f11fc653"
